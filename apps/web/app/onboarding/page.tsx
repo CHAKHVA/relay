@@ -4,6 +4,7 @@ import { Logo } from '@/components/logo';
 import { Panel } from '@/components/ui/panel';
 import { requirePageUser } from '@/lib/page-auth';
 import { listMyWorkspaces } from '@/lib/services/workspaces';
+import { DeleteAccount } from '@/components/app/danger-zone';
 import { OnboardingForms } from './forms';
 
 export const metadata: Metadata = { title: 'Get started' };
@@ -36,6 +37,9 @@ export default async function OnboardingPage() {
         </Panel>
       ) : null}
       <OnboardingForms />
+      <p className="text-sm text-muted">
+        Done with Relay? <DeleteAccount /> Owners must delete their workspaces first. <Link href="/privacy" className="text-primary underline">What Relay stores</Link>.
+      </p>
     </main>
   );
 }

@@ -16,15 +16,24 @@ Build log for Relay (autonomous mode). Resume from the first unfinished step.
 | M11 Board UI + stats + demo mode | ✅ done | Pages: landing, /guide, /privacy, /onboarding, board (seats/queue/ledger/activity, stats strip), task detail, team, my seat (windows, sharing/pause, test window, routine wizard, usage tokens), settings (repo connect, dry run, demo tools: load team, jump window, reset), getting-started checklist. Backend: demo service, onboarding, sample task, pulls. 5 integration tests (stats vs fixtures, demo clock jump, reset, checklist); 3 UI e2e + engine e2e; visual screenshots light/dark @1440/768 reviewed in `apps/web/test-artifacts/screens/m11` (fixed hero art scale) |
 | M12 Demo repo | ✅ done | `demo-repo/` (billing/auth/format, one passing test, docs, README with the 7 prepared tasks, lockfile); `pnpm install --ignore-workspace && pnpm test` passes (1 test, <1 s) |
 | M14 Deploy | ✅ done (live) | https://relay-chakhva.vercel.app deployed with `scripts/deploy-prod.mjs` (project nextjs/root apps/web, 13 prod env vars, prod migrations applied, GH Actions secrets RELAY_TICK_URL/CRON_SECRET/RELAY_PROD_URL, tick workflow every 5 min). `scripts/prod-smoke.mjs` passes: landing, guide, privacy, health (db+github), auth redirect, sign-in → GitHub with prod callback, test-login 404, cron 401/200, webhook unsigned 401 + signed ping 200; Playwright smoke passes against prod. Redeploy after each later milestone |
+| M13 Real routine integration | ✅ done (3/3 fires) | see Real fires used: real code task → branch → draft PR; real triage → metadata written back; third fire ran the triaged docs task → draft PR. Review fire not run |
 
 ## Real fires used
-0 / 3
+3 / 3 (all in M13, all against `CHAKHVA/relay-sandbox`, routine from `.env.setup`; session URLs are claude.ai links, no secrets)
+
+| # | Time (UTC) | Task | Session | Outcome |
+|---|---|---|---|---|
+| 1 | 2026-10-17 23:41 | code `rtwvk` “Add a greet() helper” (`src/greeting.js`, doneCheck passed) | https://claude.ai/code/cse_014Uwn4HgBWUv6yQ8aTXggys | branch `claude/relay-rtwvk` pushed, result file valid, **draft PR #112** opened by Relay with “Closes #111”, status comment ✅ Done, finished in ~35 s |
+| 2 | 2026-10-17 23:43 | triage `ra2if` (vague issue “Make the readme more helpful”) | https://claude.ai/code/cse_01HEwgYof1csuve49Td1Nod7 | metadata block rewritten on the real issue (human text kept), `relay:type/docs` label, title clarified, “Triaged by @… seat” comment, task → queued |
+| 3 | 2026-10-17 23:43 | work run of the just-triaged `ra2if` (Run now was still set, so it took the third fire instead of the planned review) | https://claude.ai/code/cse_01VExX1e5UV6dUNseMhqbh63 | docs task → **draft PR #115**, done. The planned review fire did **not** run: budget was spent (see Needs human) |
+
+All test issues/PRs/branches in the sandbox were closed/deleted afterwards.
 
 ## Open issues
 - none
 
 ## Needs human
-- (none yet)
+- M13: the real **review → PR comment** fire was not exercised (budget spent; the review path is covered by dry-run + GitHub tests). To check it live: in a workspace with a real routine, create a review task targeting an open PR and press Run now.
 
 ## Order (overnight, see DECISIONS #14)
 M3 ✅, M4, M5, M6, M11, M12, M14 (deploy), M13, M15, M7, M8, M9, M10

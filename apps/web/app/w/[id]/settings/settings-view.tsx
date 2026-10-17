@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { DeleteWorkspace } from '@/components/app/danger-zone';
 import { RepoConnect } from '@/components/app/repo-connect';
 import { SeatSection, useSeatMutation } from '@/components/app/seat-forms';
 import { Badge } from '@/components/ui/badge';
@@ -125,6 +126,11 @@ export function SettingsView({ workspaceId, templateRepo }: { workspaceId: strin
           }
         >
           Relay checks for work every 5 minutes and whenever GitHub sends an event. Use this to force a check. <Badge className="ml-1">debug</Badge>
+        </Row>
+      </SeatSection>
+      <SeatSection title="Danger zone">
+        <Row title="Delete this workspace" action={<DeleteWorkspace workspaceId={workspaceId} name={ws.name} />}>
+          Removes all Relay data for it. Your GitHub issues, PRs and history are never touched.
         </Row>
       </SeatSection>
     </div>
