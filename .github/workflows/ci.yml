@@ -32,7 +32,7 @@ jobs:
       - name: Unit tests (packages/core)
         run: pnpm --filter @relay/core test
       - name: Routine prompt matches SPEC §9
-        run: node scripts/check-routine-prompt.mjs
+        run: node scripts/check-routine-prompt.mjs && node scripts/sync-prompt.mjs --check
       - name: Build web
         run: pnpm --filter web build
         env:

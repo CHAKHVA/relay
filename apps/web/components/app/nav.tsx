@@ -9,9 +9,7 @@ export function WorkspaceNav({ id, owner }: { id: string; owner: boolean }) {
   const items = [
     { href: `/w/${id}`, label: 'Board', exact: true },
     { href: `/w/${id}/start`, label: 'Getting started' },
-    { href: `/w/${id}/recurring`, label: 'Recurring' },
     { href: `/w/${id}/team`, label: 'Team' },
-    { href: `/w/${id}/digest`, label: 'Digest' },
     { href: `/w/${id}/me`, label: 'My seat' },
     ...(owner ? [{ href: `/w/${id}/settings`, label: 'Settings' }] : []),
   ];
