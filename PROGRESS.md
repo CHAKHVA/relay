@@ -9,7 +9,7 @@ Build log for Relay (autonomous mode). Resume from the first unfinished step.
 | M0 Versions + scaffold | ✅ done | preflight all ✅; `pnpm i`, `pnpm -r typecheck`, `pnpm -r lint`, core tests, `pnpm --filter web build` pass; CI workflow added (checked on GitHub after push) |
 | M1 packages/core | ✅ done | 91 unit tests (windows incl. wrap, DST spring/fall, same-day; before-reset; headroom rollover/stale/in-flight; eligibility; matching order; ledger; recurring; digest; stats; issue metadata; results); coverage 98.9% lines |
 | M2 DB + auth + onboarding | ✅ done | Drizzle migrations applied to dev Neon; 6 integration tests (test login → Better Auth session, create workspace → owner, invite → accept (idempotent, single-use), owner-only invites, cross-workspace 404). Real run: `next dev`, `/api/auth/sign-in/social` returns GitHub authorize URL with Relay Dev client id + localhost callback; HTTP flow create→invite→accept→team page lists both members; screenshots of onboarding/team in light+dark reviewed |
-| M3 GitHub App + issue sync | ⏳ next | |
+| M3 GitHub App + issue sync | ✅ done | 7 GitHub tests vs sandbox repo (connect → labels + import; webhook upsert/idempotent/cancel/reactivate; foreign installation ignored; board task opens issue; rate limit) + smee e2e (real GitHub → smee → next dev → task row; close cancels). Fixed Relay Dev app webhook URL (was a github.com URL, deliveries 403) via `PATCH /app/hook/config` to SMEE_URL. Install UI lands in M15 checklist |
 
 ## Real fires used
 0 / 3
@@ -20,5 +20,8 @@ Build log for Relay (autonomous mode). Resume from the first unfinished step.
 ## Needs human
 - (none yet)
 
+## Order (overnight, see DECISIONS #14)
+M3 ✅, M4, M5, M6, M11, M12, M14 (deploy), M13, M15, M7, M8, M9, M10
+
 ## Next step
-M3: GitHub App install/setup, labels, webhook issue sync, board-created issues; smee e2e.
+M4: My seat, routine registration, usage tokens, beacon.
