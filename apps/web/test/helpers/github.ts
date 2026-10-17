@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { and, eq } from 'drizzle-orm';
 import { POST as createWorkspace } from '@/app/api/workspaces/route';
 import { db, schema } from '@/lib/db';
@@ -44,10 +45,43 @@ export async function cleanSandbox(gh: GH) {
     if (i.pull_request) continue;
     await gh.rest.issues.update({ ...ref, issue_number: i.number, state: 'closed' });
   }
+  const prs = await gh.paginate(gh.rest.pulls.list, { ...ref, state: 'open', per_page: 100 });
+  for (const pr of prs) {
+    if (pr.head.ref.startsWith('claude/relay-rtest')) await gh.rest.pulls.update({ ...ref, pull_number: pr.number, state: 'closed' });
+  }
   const branches = await gh.paginate(gh.rest.repos.listBranches, { ...ref, per_page: 100 });
   for (const b of branches) {
-    if (b.name.startsWith('claude/relay-test') || b.name.startsWith('relay-test/')) {
+    if (b.name.startsWith('claude/relay-rtest') || b.name.startsWith('relay-test/')) {
       await gh.rest.git.deleteRef({ ...ref, ref: `heads/${b.name}` }).catch(() => {});
     }
   }
+}
+
+export async function configureRoutine(memberId: string) {
+  const { saveRoutine } = await import('@/lib/services/seat');
+  const [m] = await db().select().from(schema.members).where(eq(schema.members.id, memberId));
+  await saveRoutine(m!, { fireUrl: 'https://api.anthropic.com/v1/claude_code/routines/trig_TESTTESTTEST/fire', token: 'fake-routine-token-for-tests' });
+}
+
+/**
+ * Push a branch with a file using the local `gh` CLI (the human's credentials). The Relay app itself has
+ * Contents: read-only, exactly like production, so tests that simulate a routine's push need another writer.
+ */
+export function ghPushFile(branch: string, path: string, content: string, baseBranchSha: string) {
+  const gh = (args: string[], input?: string) => execFileSync('gh', ['api', ...args], { input, encoding: 'utf8' });
+  try {
+    gh(['-X', 'POST', `repos/${TEST_REPO}/git/refs`, '-f', `ref=refs/heads/${branch}`, '-f', `sha=${baseBranchSha}`]);
+  } catch {
+    /* branch exists */
+  }
+  let sha: string | undefined;
+  try {
+    sha = JSON.parse(gh([`repos/${TEST_REPO}/contents/${path}?ref=${encodeURIComponent(branch)}`])).sha;
+  } catch {
+    /* new file */
+  }
+  const args = ['-X', 'PUT', `repos/${TEST_REPO}/contents/${path}`, '-f', `message=relay-test: ${path}`, '-f', `branch=${branch}`, '-f', `content=${Buffer.from(content).toString('base64')}`];
+  if (sha) args.push('-f', `sha=${sha}`);
+  const out = JSON.parse(gh(args));
+  return out.commit.sha as string;
 }
