@@ -1,0 +1,14 @@
+{
+  "name": "relay-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A tiny TypeScript project for trying Relay: create tasks, let your Claude seat run them.",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vitest": "^3.0.0"
+  }
+}

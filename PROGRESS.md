@@ -14,6 +14,7 @@ Build log for Relay (autonomous mode). Resume from the first unfinished step.
 | M5 Engine + DRY RUN | ✅ done | tick w/ advisory lock; dispatch/wait/block; result handling (triage, PR, comment, review); reconcile + dry-run completion + stale; status comments; state/tick/cron/health/task-action APIs. 7 GitHub engine tests (§16.3 tasks 1–3: shared onto builder seat, task 3 blocked then dispatched; simulated never executes; next-window text; Run now; test window; business comment on GitHub; retry/cancel; concurrent ticks; real push→draft PR idempotent + failed check) + Playwright e2e (settings→routine→task→run-now→done→isolation, real pages). Visual deferred to M11 |
 | M6 Triage | ✅ done | 3 GitHub tests: vague issue → triaging (webhook-driven tick) → metadata block rewritten on the real issue (human text untouched), type label, “Triaged by” comment → queued → runs → done; “Triage now” outside window; invalid triage retries once then fails; own-edit webhook echo is a no-op |
 | M11 Board UI + stats + demo mode | ✅ done | Pages: landing, /guide, /privacy, /onboarding, board (seats/queue/ledger/activity, stats strip), task detail, team, my seat (windows, sharing/pause, test window, routine wizard, usage tokens), settings (repo connect, dry run, demo tools: load team, jump window, reset), getting-started checklist. Backend: demo service, onboarding, sample task, pulls. 5 integration tests (stats vs fixtures, demo clock jump, reset, checklist); 3 UI e2e + engine e2e; visual screenshots light/dark @1440/768 reviewed in `apps/web/test-artifacts/screens/m11` (fixed hero art scale) |
+| M12 Demo repo | ✅ done | `demo-repo/` (billing/auth/format, one passing test, docs, README with the 7 prepared tasks, lockfile); `pnpm install --ignore-workspace && pnpm test` passes (1 test, <1 s) |
 
 ## Real fires used
 0 / 3
@@ -28,4 +29,4 @@ Build log for Relay (autonomous mode). Resume from the first unfinished step.
 M3 ✅, M4, M5, M6, M11, M12, M14 (deploy), M13, M15, M7, M8, M9, M10
 
 ## Next step
-M12: demo-repo, then M14 deploy.
+M14: deploy to Vercel (prod env, migrations, GH Actions secrets, smoke tests).
