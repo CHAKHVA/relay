@@ -1,0 +1,23 @@
+name: Relay tick
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Call the Relay tick endpoint
+        env:
+          RELAY_TICK_URL: ${{ secrets.RELAY_TICK_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          test -n "$RELAY_TICK_URL" || { echo "RELAY_TICK_URL not set"; exit 1; }
+          code=$(curl -sS -o /tmp/out -w '%{http_code}' --max-time 240 -H "Authorization: Bearer $CRON_SECRET" "$RELAY_TICK_URL")
+          echo "tick → HTTP $code"
+          test "$code" = "200"

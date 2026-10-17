@@ -4,7 +4,8 @@ import { defineConfig, devices } from '@playwright/test';
 config({ path: '.env.test', quiet: true });
 process.env.RELAY_ENABLE_TEST_LOGIN = '1';
 const PORT = 3200;
-const baseURL = `http://localhost:${PORT}`;
+const prodURL = process.env.RELAY_PROD_URL;
+const baseURL = prodURL ?? `http://localhost:${PORT}`;
 
 export default defineConfig({
   testDir: 'e2e',
@@ -14,7 +15,9 @@ export default defineConfig({
   workers: 1,
   reporter: [['list']],
   use: { baseURL, trace: 'retain-on-failure' },
-  webServer: {
+  webServer: prodURL
+    ? undefined
+    : {
     command: `pnpm exec next dev --turbopack -p ${PORT}`,
     url: `${baseURL}/api/health`,
     reuseExistingServer: false,
@@ -24,6 +27,7 @@ export default defineConfig({
   },
   projects: [
     { name: 'e2e', testMatch: /.*\.e2e\.ts/, use: { ...devices['Desktop Chrome'] } },
+    { name: 'smoke', testMatch: /.*\.smoke\.ts/, use: { ...devices['Desktop Chrome'] } },
     { name: 'visual', testMatch: /.*\.visual\.ts/, use: { ...devices['Desktop Chrome'] } },
   ],
 });
