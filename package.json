@@ -1,0 +1,23 @@
+{
+  "name": "relay",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.14.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "preflight": "node scripts/preflight.mjs",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r --workspace-concurrency=1 test",
+    "test:github": "pnpm --filter web test:github",
+    "test:e2e": "pnpm --filter web test:e2e",
+    "test:visual": "pnpm --filter web test:visual",
+    "test:prod": "node scripts/prod-smoke.mjs",
+    "check-secrets": "node scripts/check-secrets.mjs"
+  },
+  "devDependencies": {
+    "@neondatabase/serverless": "1.2.0"
+  }
+}

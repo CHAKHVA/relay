@@ -6,3 +6,8 @@ node_modules/
 .next/
 test-artifacts/
 .vercel/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+.DS_Store
