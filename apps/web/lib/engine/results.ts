@@ -111,7 +111,7 @@ export async function applyResult(ws: Workspace, task: Task, result: RelayResult
       note = `Dry run: PR would be opened from branch \`${task.branch}\`.`;
     } else {
       const head = task.branch!;
-      const existing = await gh.rest.pulls.list({ ...ref, head: `${ref.owner}:${head}`, state: 'all', per_page: 5 });
+      const existing = await gh.rest.pulls.list({ ...ref, head: `${ref.owner}:${head}`, state: 'open', per_page: 5 });
       let pr: { html_url: string; number: number } | undefined = existing.data[0];
       if (!pr) {
         const body = [

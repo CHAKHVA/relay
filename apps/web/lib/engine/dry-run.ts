@@ -18,7 +18,8 @@ export function synthesizeResult(task: Task): RelayResult {
   if (task.runKind === 'triage') {
     const fromText = pathsInText(`${task.title}\n${task.body}`);
     const files = task.likelyFiles.length ? task.likelyFiles : fromText.length ? fromText : ['README.md'];
-    const needsType = /\btype\b/.test(task.statusReason ?? '');
+    // Untyped issues are stored with a placeholder type; a triage that had nothing to go on infers one from the files.
+    const needsType = !task.likelyFiles.length && !task.doneCheck;
     const type = needsType ? (files.some((f) => /\.(ts|tsx|js|jsx|py|go|rs)$/.test(f)) ? 'code' : 'docs') : task.type;
     return {
       taskId: task.id,

@@ -163,7 +163,7 @@ describe('result handling against real GitHub (non-dry-run)', () => {
     const t = await get(id);
     expect(t.status).toBe('done');
     expect(t.resultPrUrl).toMatch(/\/pull\/\d+$/);
-    const prs = await ctx.gh.rest.pulls.list({ ...ref, head: `${TEST_OWNER}:${branch}`, state: 'all' });
+    const prs = await ctx.gh.rest.pulls.list({ ...ref, head: `${TEST_OWNER}:${branch}`, state: 'open' });
     expect(prs.data).toHaveLength(1);
     expect(prs.data[0]!.draft).toBe(true);
     expect(prs.data[0]!.title).toBe('[Relay rtest1] Real PR flow');

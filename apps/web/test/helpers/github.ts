@@ -52,7 +52,12 @@ export async function cleanSandbox(gh: GH) {
   const branches = await gh.paginate(gh.rest.repos.listBranches, { ...ref, per_page: 100 });
   for (const b of branches) {
     if (b.name.startsWith('claude/relay-rtest') || b.name.startsWith('relay-test/')) {
-      await gh.rest.git.deleteRef({ ...ref, ref: `heads/${b.name}` }).catch(() => {});
+      // The Relay app has Contents: read-only, so branches are deleted with the local gh CLI.
+      try {
+        execFileSync('gh', ['api', '-X', 'DELETE', `repos/${TEST_REPO}/git/refs/heads/${b.name}`], { stdio: 'ignore' });
+      } catch {
+        /* already gone */
+      }
     }
   }
 }
