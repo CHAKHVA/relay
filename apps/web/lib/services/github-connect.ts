@@ -5,7 +5,7 @@ import { db, schema } from '../db';
 import type { Workspace } from '../db/schema';
 import { userOctokit } from '../github/app';
 import { ensureLabels, listInstallationRepos, workspaceOctokit } from '../github/repo';
-import { badRequest, conflict, forbidden } from '../http';
+import { badRequest, conflict, forbidden, log } from '../http';
 import { recordEvent } from '../engine/events';
 import { syncStatusComment } from '../engine/status-comment';
 import { syncIssue } from '../engine/sync';
@@ -27,24 +27,33 @@ export function verifyInstallState(state: string, now = Date.now()): string | nu
   return wsId;
 }
 
-/** Verify with the user's own GitHub token that they can access this installation (prevents linking someone else's). */
-export async function userCanAccessInstallation(userId: string, installationId: number): Promise<boolean> {
+/** Installations of the Relay app visible to the user's own GitHub token, or null if the token is unavailable. */
+export async function userInstallations(userId: string): Promise<{ id: number; account: string }[] | null> {
   let token: string | undefined;
   try {
     const [acct] = await db()
       .select({ accountId: schema.account.accountId })
       .from(schema.account)
       .where(and(eq(schema.account.userId, userId), eq(schema.account.providerId, 'github')));
-    if (!acct) return false;
+    if (!acct) return null;
     const r = await auth().api.getAccessToken({ body: { accountId: acct.accountId, userId } });
     token = r?.accessToken;
-  } catch {
+  } catch (e) {
+    log('warn', 'github user token unavailable', { userId, error: (e as Error).message });
     token = undefined;
   }
-  if (!token) return false;
+  if (!token) return null;
   const gh = userOctokit(token);
   const installs = await gh.paginate(gh.rest.apps.listInstallationsForAuthenticatedUser, { per_page: 100 });
-  return installs.some((i) => i.id === installationId);
+  return installs.map((i) => ({ id: i.id, account: i.account && 'login' in i.account ? i.account.login : String(i.account?.name ?? '') }));
+}
+
+/** Verify with the user's own GitHub token that they can access this installation (prevents linking someone else's). */
+export async function userCanAccessInstallation(userId: string, installationId: number): Promise<boolean> {
+  const installs = await userInstallations(userId);
+  const ok = !!installs?.some((i) => i.id === installationId);
+  if (!ok) log('warn', 'installation not visible to user token', { userId, installationId, visible: installs?.length ?? null });
+  return ok;
 }
 
 export async function linkInstallation(ws: Workspace, installationId: number) {

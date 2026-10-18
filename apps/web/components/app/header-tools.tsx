@@ -1,9 +1,10 @@
 'use client';
 
-import { Plus } from 'lucide-react';
+import { LogOut, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { authClient } from '@/lib/auth-client';
 import { useBoard, useRefreshBoard } from '@/lib/client/use-board';
 import { CommandPalette } from './command-palette';
 import { NewTaskDialog } from './new-task-dialog';
@@ -55,6 +56,18 @@ export function HeaderTools({ workspaceId }: { workspaceId: string }) {
       <NotificationBell workspaceId={workspaceId} />
       <Button size="sm" onClick={() => setOpen(true)} disabled={!ws.githubConnected || !ws.repo} title={ws.repo ? 'New task (N)' : 'Connect a repository first'}>
         <Plus /> New task <kbd className="ml-1 hidden rounded border border-white/30 px-1 text-[10px] font-normal sm:inline">N</kbd>
+      </Button>
+      <Button
+        size="sm"
+        variant="ghost"
+        aria-label="Sign out"
+        title="Sign out"
+        onClick={async () => {
+          await authClient.signOut();
+          window.location.replace('/');
+        }}
+      >
+        <LogOut />
       </Button>
       <CommandPalette board={board} />
       <NewTaskDialog board={board} open={open} onOpenChange={setOpen} onCreated={refresh} />

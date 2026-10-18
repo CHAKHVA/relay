@@ -35,6 +35,24 @@ export function RepoConnect({ board, owner, templateRepo }: { board: BoardState;
     }
   }
 
+  const [found, setFound] = useState<{ id: number; account: string }[]>([]);
+  async function detect(installationId?: number) {
+    setBusy(true);
+    try {
+      const r = await api<{ linked: boolean; installations: { id: number; account: string }[] }>(`/api/workspaces/${ws.id}/github/detect`, { body: { installationId } });
+      if (r.linked) {
+        toast.success('GitHub App found and linked');
+        await qc.invalidateQueries({ queryKey: ['board', ws.id] });
+      } else {
+        setFound(r.installations);
+      }
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function connect() {
     setBusy(true);
     try {
@@ -74,12 +92,25 @@ export function RepoConnect({ board, owner, templateRepo }: { board: BoardState;
             <Button onClick={install} disabled={busy}>
               Install Relay GitHub App
             </Button>
+            <Button variant="ghost" onClick={() => detect()} disabled={busy}>
+              I already installed it
+            </Button>
             {templateRepo ? (
               <a className="text-primary underline" href={`https://github.com/${templateRepo}/generate`} target="_blank" rel="noreferrer">
                 No project handy? Create a copy of the Relay demo repo
               </a>
             ) : null}
           </div>
+          {found.length > 1 ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-muted">Which installation?</span>
+              {found.map((i) => (
+                <Button key={i.id} size="sm" variant="ghost" onClick={() => detect(i.id)} disabled={busy}>
+                  {i.account}
+                </Button>
+              ))}
+            </div>
+          ) : null}
         </>
       ) : (
         <div className="flex flex-wrap items-center gap-2">
