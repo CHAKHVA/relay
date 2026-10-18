@@ -51,5 +51,13 @@ export async function seedDemoBoard(wsId: string) {
     { id: newId(), workspaceId: wsId, taskId: 'r7f3a', kind: 'task_dispatched', message: 'r7f3a work dispatched to @giorgi’s seat (off-hours, shared) [dry run]', createdAt: mins(6) },
     { id: newId(), workspaceId: wsId, taskId: 'r3c7z', kind: 'task_done', message: 'r3c7z done (comment posted) [dry run]', createdAt: mins(40) },
   ]);
+  const { notify } = await import('../lib/engine/notify');
+  await notify({ memberId: owner!.id, kind: 'my_task_ready', title: 'Your task r3c7z is ready', body: 'Compare 3 approaches for multi-currency formatting', url: `/w/${wsId}/tasks/r3c7z`, dedupeKey: 'seed-1' });
+  await notify({ memberId: owner!.id, kind: 'task_done_on_my_seat', title: 'Ran r7f3a for Ana', body: 'Add unit tests for calcInvoice', dedupeKey: 'seed-2' });
+  await db().insert(schema.digests).values({ id: newId(), memberId: owner!.id, date: new Date(now.getTime() - 86400_000).toISOString().slice(0, 10), commentUrl: `https://github.com/${TEST_OWNER}/${TEST_NAME}/issues/20#issuecomment-1`, markdown: '### Ran on your seat\n- **r3c7z** #5 Compare 3 approaches — shared · requested by Ana (Simulated) · [Relay](https://example.com)\n- **r6n2b** #6 Weekly dependency audit — your task · [PR](https://example.com)\n\n### Needs attention\n- **r4h6t** #8 Migrate formatMoney to Intl — failed\n\n### Tonight\'s plan\n- **r8w4q** #4 Review PR #4 — waiting for a window' });
+  await db().insert(schema.recurringTasks).values([
+    { id: newId(), workspaceId: wsId, creatorMemberId: owner!.id, title: 'Weekly dependency audit', body: 'Audit dependencies.', type: 'docs', cron: '0 9 * * 1', timezone: 'Asia/Tbilisi', nextRunAt: new Date(now.getTime() + 3 * 86400_000), lastRunAt: new Date(now.getTime() - 4 * 86400_000) },
+    { id: newId(), workspaceId: wsId, creatorMemberId: owner!.id, title: 'Nightly flaky-test report', body: '', type: 'business', cron: '0 20 * * *', timezone: 'Asia/Tbilisi', enabled: false, nextRunAt: now },
+  ]);
   return { owner: owner!, ana, luka };
 }

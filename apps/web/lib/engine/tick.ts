@@ -8,6 +8,8 @@ import { recordEvent } from './events';
 import { loadMembers, loadTasks, toSched, toSeat } from './load';
 import { withWorkspaceLock } from './lock';
 import { ghName } from './names';
+import { runDigests, runWindowNotices } from './digests';
+import { runRecurring } from './recurring';
 import { reconcileWorkspace } from './results';
 import { syncStatusComment } from './status-comment';
 import { MAX_ATTEMPTS } from '@relay/core';
@@ -39,10 +41,16 @@ async function tickLocked(workspaceId: string, realNow: Date): Promise<TickSumma
   const ws = await loadWorkspace(workspaceId);
   if (!ws || !ws.githubInstallationId || !ws.repoOwner) return summary;
 
-  summary.reconciled = await reconcileWorkspace(ws, realNow);
-
   const now = clockFor(ws, realNow);
   const members = await loadMembers(ws.id);
+  // 1. Recurring templates → issues.
+  try {
+    await runRecurring(ws, members, now);
+  } catch (e) {
+    log('error', 'recurring step failed', { workspaceId: ws.id, error: (e as Error).message });
+  }
+  // 2. Reconcile running tasks.
+  summary.reconciled = await reconcileWorkspace(ws, realNow);
   const tasks = await loadTasks(ws.id);
   const actions = planTick({ now, members: members.map(toSeat), tasks: tasks.map(toSched) });
   const touched = new Set<string>();
@@ -81,9 +89,14 @@ async function tickLocked(workspaceId: string, realNow: Date): Promise<TickSumma
     }
   }
 
-  if (touched.size) {
-    const fresh = await loadTasks(ws.id);
-    for (const t of fresh.filter((x) => touched.has(x.id))) await syncStatusComment(ws, t, members);
+  const fresh = await loadTasks(ws.id);
+  if (touched.size) for (const t of fresh.filter((x) => touched.has(x.id))) await syncStatusComment(ws, t, members);
+  // 4. Digests and window notices.
+  try {
+    await runDigests(ws, await loadMembers(ws.id), fresh, now);
+    await runWindowNotices(ws, members, fresh, now);
+  } catch (e) {
+    log('error', 'digest step failed', { workspaceId: ws.id, error: (e as Error).message });
   }
   return summary;
 }

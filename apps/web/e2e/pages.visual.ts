@@ -4,7 +4,7 @@ import { truncateAll } from '../test/helpers/db';
 import { TEST_OWNER } from '../test/helpers/github';
 import { seedDemoBoard } from './seed';
 
-const OUT = process.env.SHOTS_DIR ?? 'test-artifacts/screens/m11';
+const OUT = process.env.SHOTS_DIR ?? 'test-artifacts/screens/m15';
 const VIEWPORTS = [
   { name: '1440', width: 1440, height: 900 },
   { name: '768', width: 768, height: 1024 },
@@ -23,7 +23,7 @@ test.beforeAll(async ({ request }) => {
   wsId = created.workspace.id;
   await seedDemoBoard(wsId);
   // Warm up: compile every route once so screenshots aren't racing the dev compiler.
-  for (const path of ['/', '/guide', '/privacy', '/onboarding', `/w/${wsId}`, `/w/${wsId}/tasks/r3c7z`, `/w/${wsId}/team`, `/w/${wsId}/me`, `/w/${wsId}/settings`, `/w/${wsId}/start`]) {
+  for (const path of ['/', '/guide', '/privacy', '/onboarding', `/w/${wsId}`, `/w/${wsId}/tasks/r3c7z`, `/w/${wsId}/team`, `/w/${wsId}/recurring`, `/w/${wsId}/digest`, `/w/${wsId}/me`, `/w/${wsId}/settings`, `/w/${wsId}/start`]) {
     await request.get(path, { timeout: 120_000 });
   }
 });
@@ -37,6 +37,8 @@ for (const vp of VIEWPORTS) {
       const pages: [string, string][] = [
         ['board', `/w/${wsId}`],
         ['task', `/w/${wsId}/tasks/r3c7z`],
+        ['recurring', `/w/${wsId}/recurring`],
+        ['digest', `/w/${wsId}/digest`],
         ['team', `/w/${wsId}/team`],
         ['me', `/w/${wsId}/me`],
         ['settings', `/w/${wsId}/settings`],
@@ -50,6 +52,14 @@ for (const vp of VIEWPORTS) {
         await page.waitForTimeout(700);
         await page.screenshot({ path: `${OUT}/${name}-${vp.name}-${scheme}.png`, fullPage: true });
       }
+      await page.goto(`/w/${wsId}`, { waitUntil: 'domcontentloaded' });
+      await page.getByRole('button', { name: /Notifications/ }).click({ timeout: 60_000 });
+      await page.waitForTimeout(500);
+      await page.screenshot({ path: `${OUT}/bell-${vp.name}-${scheme}.png` });
+      await page.keyboard.press('Escape');
+      await page.keyboard.press('Control+k');
+      await page.waitForTimeout(500);
+      await page.screenshot({ path: `${OUT}/palette-${vp.name}-${scheme}.png` });
       await ctx.close();
     });
 

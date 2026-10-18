@@ -140,6 +140,7 @@ export function SeatControls({ me, workspaceId, now }: { me: BoardMember; worksp
         description="Teammates’ tasks will run on your Claude account and appear on GitHub as you. Only when you are inside a run window and above your reserve. You can pause anytime."
       />
       <Toggle label="Pause my seat" checked={me.paused} onChange={(v) => mutate('/me', { method: 'PATCH', body: { paused: v } })} description="Nothing new is dispatched to your seat while paused. Running jobs finish." />
+      <BrowserNotifications />
       <div className="flex flex-wrap items-center justify-between gap-3 py-3">
         <div>
           <div className="text-sm font-medium">Test window</div>
@@ -400,5 +401,47 @@ export function ExternalA({ href, children }: { href: string; children: React.Re
     <a className="inline-flex items-center gap-1 text-primary underline" href={href} target="_blank" rel="noreferrer">
       {children} <ExternalLink className="size-3" aria-hidden="true" />
     </a>
+  );
+}
+
+function BrowserNotifications() {
+  const [perm, setPerm] = useState<string>(() => (typeof Notification === 'undefined' ? 'unsupported' : Notification.permission));
+  const [on, setOn] = useState(() => {
+    try {
+      return localStorage.getItem('relay:browser-notifications') === '1';
+    } catch {
+      return false;
+    }
+  });
+  if (perm === 'unsupported') return null;
+  const enabled = on && perm === 'granted';
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 py-3">
+      <div>
+        <div className="text-sm font-medium">Browser notifications</div>
+        <p className="mt-0.5 max-w-prose text-sm text-muted">
+          {perm === 'denied' ? 'Blocked in your browser settings for this site.' : 'Get a pop-up when a task is ready or fails while a Relay tab is open. No background service is used.'}
+        </p>
+      </div>
+      <Button
+        variant="secondary"
+        disabled={perm === 'denied'}
+        onClick={async () => {
+          if (enabled) {
+            localStorage.setItem('relay:browser-notifications', '0');
+            setOn(false);
+            return;
+          }
+          const p = perm === 'granted' ? 'granted' : await Notification.requestPermission();
+          setPerm(p);
+          if (p === 'granted') {
+            localStorage.setItem('relay:browser-notifications', '1');
+            setOn(true);
+          }
+        }}
+      >
+        {enabled ? 'Turn off' : 'Enable browser notifications'}
+      </Button>
+    </div>
   );
 }

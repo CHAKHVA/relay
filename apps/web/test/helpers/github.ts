@@ -45,6 +45,8 @@ export async function cleanSandbox(gh: GH) {
     if (i.pull_request) continue;
     await gh.rest.issues.update({ ...ref, issue_number: i.number, state: 'closed' });
   }
+  const digests = await gh.paginate(gh.rest.issues.listForRepo, { ...ref, labels: 'relay-digest', state: 'open', per_page: 100 });
+  for (const i of digests) await gh.rest.issues.update({ ...ref, issue_number: i.number, state: 'closed' });
   const prs = await gh.paginate(gh.rest.pulls.list, { ...ref, state: 'open', per_page: 100 });
   for (const pr of prs) {
     if (pr.head.ref.startsWith('claude/relay-rtest')) await gh.rest.pulls.update({ ...ref, pull_number: pr.number, state: 'closed' });

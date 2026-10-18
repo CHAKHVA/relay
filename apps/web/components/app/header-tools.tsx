@@ -5,7 +5,9 @@ import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useBoard, useRefreshBoard } from '@/lib/client/use-board';
+import { CommandPalette } from './command-palette';
 import { NewTaskDialog } from './new-task-dialog';
+import { NotificationBell } from './notifications';
 
 export const NEW_TASK_EVENT = 'relay:new-task';
 
@@ -47,9 +49,14 @@ export function HeaderTools({ workspaceId }: { workspaceId: string }) {
           Clock {new Date(board.now).toISOString().slice(5, 16).replace('T', ' ')} UTC
         </Badge>
       ) : null}
+      <Button size="sm" variant="ghost" className="hidden sm:inline-flex" onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))} aria-label="Open command palette">
+        <kbd className="rounded border border-line-strong px-1.5 text-[11px] font-normal text-muted">⌘K</kbd>
+      </Button>
+      <NotificationBell workspaceId={workspaceId} />
       <Button size="sm" onClick={() => setOpen(true)} disabled={!ws.githubConnected || !ws.repo} title={ws.repo ? 'New task (N)' : 'Connect a repository first'}>
         <Plus /> New task <kbd className="ml-1 hidden rounded border border-white/30 px-1 text-[10px] font-normal sm:inline">N</kbd>
       </Button>
+      <CommandPalette board={board} />
       <NewTaskDialog board={board} open={open} onOpenChange={setOpen} onCreated={refresh} />
     </>
   );
