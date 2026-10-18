@@ -44,4 +44,24 @@ All test issues/PRs/branches in the sandbox were closed/deleted afterwards.
 M3 ✅, M4, M5, M6, M11, M12, M14 (deploy), M13, M15, M7, M8, M9, M10
 
 ## Next step
-M13: real routine fires (budget 3) against sandbox repo.
+Done: see Final report.
+
+## Final report
+
+**Live URL:** https://relay-chakhva.vercel.app (Vercel production; Neon prod database; GitHub App `relay-chakhva`, publicly viewable/installable).
+
+**Build order used (DECISIONS #14):** M3, M4, M5, M6, M11, M12, M14, M13, M15, M7, M8, M9, M10 — all milestones M0–M15 are complete.
+
+**What was verified**
+- Unit: 91 tests in `packages/core`. Integration: 34 tests (auth, workspaces, seats, routine encryption, beacon, demo mode, stats vs fixtures, notifications, recurring API, deletion, cron auth, statusLine script). GitHub (sandbox repo, Relay Dev app): 24 tests incl. the smee webhook round trip, engine (§16.3 tasks 1–3), triage, real push → draft PR, recurring, digests. Playwright e2e: 5 tests (API + UI flows, workspace isolation). Visual: light/dark × 1440/768 screenshots of every page reviewed at M11 and M15.
+- `pnpm -r typecheck`, `pnpm -r lint`, `pnpm --filter web build`: clean. CI, hourly/push production smoke, and the 5-minute tick workflow are green on GitHub.
+- Production: `pnpm test:prod` passes (landing, guide, privacy, health db+github, sign-in → GitHub with the prod callback, test-login 404, cron 401/200, webhook unsigned 401 + signed ping 200); Playwright smoke passes against prod.
+- Real routine: 3 of 3 fires used, all in M13 against the sandbox repo (see **Real fires used**): real code task → branch → draft PR #112; real triage → metadata written back; third fire ran the triaged docs task → draft PR #115.
+
+**Real fires used:** 3 / 3.
+
+## Needs human
+- **M15 second-account check:** with a second GitHub account (and its own Claude plan), sign in at https://relay-chakhva.vercel.app, make a copy of https://github.com/CHAKHVA/relay-demo, install the Relay GitHub App on it, create the routine, press Run now, and confirm a real draft PR arrives.
+- **Record the demo video** (README → Demo script; use demo mode, *Load demo team*, *Jump to next window*, *Reset demo data*) and put the link in the README "For judges" table and `NEXT_PUBLIC_DEMO_VIDEO_URL` (Vercel env) if you want it embedded on the landing page.
+- **Real review fire:** the review → PR comment path ran only in dry run/GitHub tests (budget spent). Quick live check: create a review task targeting an open PR in a workspace with a real routine and press Run now.
+- Confirm in the production GitHub App settings that "Any account" can install it (the app page is publicly viewable, but the visibility toggle can only be verified in the browser).
