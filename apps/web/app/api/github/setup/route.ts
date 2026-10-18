@@ -25,7 +25,7 @@ export async function GET(req: Request) {
     .where(and(eq(schema.members.workspaceId, wsId), eq(schema.members.userId, user.id)));
   if (!row || row.member.role !== 'owner') return back('/onboarding');
   try {
-    if (!(await userCanAccessInstallation(user.id, installationId))) {
+    if (!(await userCanAccessInstallation(user.id, installationId, req.headers))) {
       return back(`/w/${wsId}/start?error=${encodeURIComponent('We could not confirm you have access to that installation. Sign out and in again, then retry.')}`);
     }
     await linkInstallation(row.ws, installationId);

@@ -9,7 +9,7 @@ const bodySchema = z.object({ installationId: z.number().int().positive().option
 export const POST = route<{ id: string }>(async (req, { id }) => {
   const { workspace, user } = await requireOwner(req, id);
   const { installationId } = await parseBody(req, bodySchema);
-  const installs = await userInstallations(user.id);
+  const installs = await userInstallations(user.id, req.headers);
   if (!installs) throw badRequest('Relay could not read your GitHub sign-in. Sign out, sign in with GitHub again, then retry.', 'github_token_missing');
   if (installs.length === 0) throw badRequest('GitHub shows no Relay installation for your account yet. Install the app first.', 'no_installation');
   const chosen = installationId ? installs.find((i) => i.id === installationId) : installs.length === 1 ? installs[0] : undefined;

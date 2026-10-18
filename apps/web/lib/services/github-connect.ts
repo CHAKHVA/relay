@@ -28,15 +28,15 @@ export function verifyInstallState(state: string, now = Date.now()): string | nu
 }
 
 /** Installations of the Relay app visible to the user's own GitHub token, or null if the token is unavailable. */
-export async function userInstallations(userId: string): Promise<{ id: number; account: string }[] | null> {
+export async function userInstallations(userId: string, headers: Headers): Promise<{ id: number; account: string }[] | null> {
   let token: string | undefined;
   try {
     const [acct] = await db()
-      .select({ accountId: schema.account.accountId })
+      .select({ id: schema.account.id })
       .from(schema.account)
       .where(and(eq(schema.account.userId, userId), eq(schema.account.providerId, 'github')));
     if (!acct) return null;
-    const r = await auth().api.getAccessToken({ body: { accountId: acct.accountId, userId } });
+    const r = await auth().api.getAccessToken({ body: { accountId: acct.id, userId }, headers });
     token = r?.accessToken;
   } catch (e) {
     log('warn', 'github user token unavailable', { userId, error: (e as Error).message });
@@ -49,8 +49,8 @@ export async function userInstallations(userId: string): Promise<{ id: number; a
 }
 
 /** Verify with the user's own GitHub token that they can access this installation (prevents linking someone else's). */
-export async function userCanAccessInstallation(userId: string, installationId: number): Promise<boolean> {
-  const installs = await userInstallations(userId);
+export async function userCanAccessInstallation(userId: string, installationId: number, headers: Headers): Promise<boolean> {
+  const installs = await userInstallations(userId, headers);
   const ok = !!installs?.some((i) => i.id === installationId);
   if (!ok) log('warn', 'installation not visible to user token', { userId, installationId, visible: installs?.length ?? null });
   return ok;
